@@ -1,0 +1,322 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Inter', sans-serif;
+    background: #d4d6d1;
+    color: #152017;
+  }
+
+  .db-root { padding: 2rem 1rem; max-width: 1200px; margin: 0 auto; }
+
+  .db-header { margin-bottom: 2.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(139,220,24,.08) 0%, rgba(139,220,24,.02) 100%); border-radius: 22px; border: 1px solid rgba(139,220,24,.2); }
+  .db-header h1 { font-size: 32px; font-weight: 800; color: #152017; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .db-header p { font-size: 14px; color: #687467; }
+
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 999px; }
+  .tag-df { background: rgba(217,81,91,.14); color: #d9515b; }
+  .tag-fn { background: rgba(139,220,24,.18); color: #75c20f; }
+  .tag-both { background: rgba(139,220,24,.18); color: #8bdc18; }
+
+  .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .filter-btn { font-size: 13px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(39,65,49,.12); background: rgba(255,255,255,.94); color: #687467; cursor: pointer; transition: all 0.3s; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,.02); }
+  .filter-btn:hover { border-color: rgba(139,220,24,.5); color: #152017; background: rgba(139,220,24,.05); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(139,220,24,.1); }
+  .filter-btn.active { background: linear-gradient(135deg, #8bdc18, #b7ef42); color: #152017; border-color: #8bdc18; font-weight: 600; box-shadow: 0 4px 12px rgba(139,220,24,.3); transform: translateY(-2px); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat-card { background: rgba(255,255,255,.94); border: 1px solid rgba(39,65,49,.12); border-radius: 22px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.05); transition: all 0.3s; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #8bdc18, transparent); }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,220,24,.12); border-color: rgba(139,220,24,.3); }
+  .stat-card .sl { font-size: 12px; color: #687467; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .sv { font-size: 28px; font-weight: 800; color: #8bdc18; }
+  .stat-card .si { font-size: 11px; color: #687467; margin-top: 6px; font-weight: 500; }
+
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 2rem; }
+  .chart-card { background: rgba(255,255,255,.94); border: 1px solid rgba(39,65,49,.12); border-radius: 22px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,.05); }
+  .chart-card h3 { font-size: 14px; font-weight: 800; color: #152017; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .incidents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .incident-card { background: rgba(255,255,255,.94); border: 1px solid rgba(39,65,49,.12); border-radius: 22px; padding: 1.25rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,.03); position: relative; overflow: hidden; }
+  .incident-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #8bdc18, transparent); opacity: 0; transition: opacity 0.3s; }
+  .incident-card:hover { transform: translateY(-3px); border-color: rgba(139,220,24,.42); box-shadow: 0 8px 20px rgba(139,220,24,.1); }
+  .incident-card:hover::before { opacity: 1; }
+  .incident-card.expanded { border-color: #8bdc18; background: linear-gradient(135deg, rgba(139,220,24,.08) 0%, rgba(255,255,255,.94) 100%); box-shadow: 0 8px 24px rgba(139,220,24,.12); }
+
+  .ic-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .ic-year { font-size: 12px; color: #687467; font-weight: 500; }
+  .ic-icon { font-size: 20px; color: #8bdc18; }
+  .ic-title { font-size: 15px; font-weight: 800; color: #152017; margin-bottom: 6px; line-height: 1.4; letter-spacing: -0.3px; }
+  .ic-subtitle { font-size: 13px; color: #687467; margin-bottom: 12px; }
+  .ic-impact { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .impact-bar-bg { flex: 1; height: 5px; background: rgba(39,65,49,.12); border-radius: 999px; overflow: hidden; }
+  .impact-bar { height: 100%; border-radius: 999px; }
+  .impact-label { font-size: 11px; color: #687467; white-space: nowrap; font-weight: 500; }
+  .ic-detail { font-size: 13px; color: #687467; line-height: 1.6; margin-top: 12px; border-top: 1px solid rgba(39,65,49,.12); padding-top: 12px; display: none; }
+  .incident-card.expanded .ic-detail { display: block; }
+  .ic-meta { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .ic-pill { font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(39,65,49,.12); color: #687467; background: transparent; font-weight: 500; }
+
+  .legend { display: flex; gap: 16px; margin-bottom: 12px; font-size: 12px; color: #687467; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  .section-title { font-size: 14px; font-weight: 800; color: #152017; margin-bottom: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 0.5px; position: relative; padding-left: 12px; }
+  .section-title::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 16px; background: #8bdc18; border-radius: 2px; }
+
+  @media (max-width: 560px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .chart-row { grid-template-columns: 1fr; }
+    .incidents-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="db-root">
+  <div class="db-header">
+    <h1><i class="ti ti-alert-triangle" style="font-size:18px;vertical-align:-2px;margin-right:8px;color:#8bdc18" aria-hidden="true"></i>Fake News & Deepfake Incidents</h1>
+    <p>Documented real-world cases — financial fraud, electoral interference, public health, and more. Click any card to expand details.</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="sl">Total incidents</div><div class="sv" id="cnt-total">12</div><div class="si">documented cases</div></div>
+    <div class="stat-card"><div class="sl">Deepfake attacks</div><div class="sv" id="cnt-df">7</div><div class="si">visual / audio synthetic media</div></div>
+    <div class="stat-card"><div class="sl">Fake news cases</div><div class="sv" id="cnt-fn">5</div><div class="si">textual misinformation</div></div>
+    <div class="stat-card"><div class="sl">Est. financial damage</div><div class="sv">$≥1B</div><div class="si">across fraud cases</div></div>
+  </div>
+
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="financial">Financial fraud</button>
+    <button class="filter-btn" data-cat="electoral">Electoral</button>
+    <button class="filter-btn" data-cat="health">Public health</button>
+    <button class="filter-btn" data-cat="violence">Violence / unrest</button>
+    <button class="filter-btn" data-cat="corporate">Corporate</button>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>Incidents by category</h3>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#D85A30"></span>Deepfake</span>
+        <span><span class="legend-dot" style="background:#378ADD"></span>Fake news</span>
+        <span><span class="legend-dot" style="background:#7F77DD"></span>Both</span>
+      </div>
+      <div style="position:relative;width:100%;height:200px;"><canvas id="catChart" role="img" aria-label="Bar chart of incidents by category">Financial fraud 4, Electoral 3, Public health 2, Violence 2, Corporate 1.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Incidents by year</h3>
+      <div style="position:relative;width:100%;height:220px;"><canvas id="yearChart" role="img" aria-label="Line chart of incidents per year from 2017 to 2025">2017:1, 2019:1, 2020:2, 2021:1, 2022:1, 2023:2, 2024:2, 2025:2.</canvas></div>
+    </div>
+  </div>
+
+  <p class="section-title">Case studies — click to expand</p>
+  <div class="incidents-grid" id="incidents-grid"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const incidents = [
+  {
+    id:1, year:2025, type:'df', cat:'financial',
+    icon:'ti-video',
+    title:'Singapore CFO deepfake scam',
+    subtitle:'Finance director nearly wired $499K via fake Zoom call',
+    impact:95,
+    detail:'Scammers used live deepfake video to impersonate the CEO and a fabricated lawyer on a Zoom call, coercing the finance director to sign a fake NDA and initiate a $499,000 transfer. Funds were frozen through rapid coordination between Singapore\'s Anti-Scam Centre and Hong Kong law enforcement. This case is notable for targeting a trained financial professional in a real-time video context — far more demanding than static image manipulation.',
+    tags:['Singapore','Live video deepfake','Social engineering','$499K at risk']
+  },
+  {
+    id:2, year:2024, type:'both', cat:'electoral',
+    icon:'ti-speakerphone',
+    title:'India 2024 election deepfake campaign',
+    subtitle:'AI-generated videos of Modi & Gandhi spread at scale on WhatsApp & YouTube',
+    impact:98,
+    detail:'During the world\'s largest election (970M eligible voters), fabricated video clips of PM Narendra Modi and Rahul Gandhi making statements they never made were industrially produced and disseminated. The Election Commission issued emergency takedown orders, but encrypted WhatsApp distribution made enforcement nearly impossible. Researchers now cite this as a watershed moment — deepfakes as a standardised tool of political warfare.',
+    tags:['India','970M voters','WhatsApp','YouTube','Political deepfake']
+  },
+  {
+    id:3, year:2020, type:'fn', cat:'health',
+    icon:'ti-virus',
+    title:'COVID-19 infodemic',
+    subtitle:'WHO declared a simultaneous "infodemic" alongside the pandemic',
+    impact:97,
+    detail:'Alongside the COVID-19 pandemic, the WHO declared a global "infodemic" — a flood of false information ranging from 5G tower conspiracy theories, to claims that drinking bleach or injecting disinfectant cured the virus. Misinformation caused real-world harm: bleach poisonings spiked, anti-mask narratives undermined public health measures, and vaccine hesitancy was amplified. Social platforms struggled to moderate content at pandemic speed.',
+    tags:['Global','WHO infodemic','Vaccine misinformation','Health harm']
+  },
+  {
+    id:4, year:2019, type:'fn', cat:'violence',
+    icon:'ti-flame',
+    title:'Sri Lanka Easter bombings WhatsApp panic',
+    subtitle:'False rumours triggered communal violence after the 2019 attacks',
+    impact:88,
+    detail:'Following the Easter Sunday bombings that killed 269 people, fake news spread rapidly via WhatsApp — including fabricated claims about further attacks, wrong suspects, and inflammatory anti-Muslim content. The misinformation triggered communal violence and looting. The Sri Lankan government temporarily blocked social media nationwide, highlighting the real-world escalation potential of encrypted misinformation channels.',
+    tags:['Sri Lanka','WhatsApp shutdown','Communal violence','269 deaths']
+  },
+  {
+    id:5, year:2023, type:'df', cat:'financial',
+    icon:'ti-building-bank',
+    title:'UK energy firm CFO voice deepfake ($243K)',
+    subtitle:'CEO\'s voice cloned via AI to authorise wire transfer',
+    impact:85,
+    detail:'A UK-based energy company\'s CFO received what sounded exactly like a phone call from the parent company\'s CEO in Germany — voice cloned with AI — instructing an urgent transfer of €220,000 (~$243K) to a Hungarian supplier. The CFO complied. The scammer called a second time requesting another transfer, at which point suspicion was raised. Insurers later covered the loss. This is among the first publicly documented AI voice-clone financial frauds.',
+    tags:['UK','Voice clone','€220K lost','Energy sector']
+  },
+  {
+    id:6, year:2024, type:'df', cat:'financial',
+    icon:'ti-cash',
+    title:'Arup Hong Kong deepfake video conference ($25M)',
+    subtitle:'Employee wired $25M after deepfake multi-person video call',
+    impact:99,
+    detail:'An employee at engineering firm Arup\'s Hong Kong office attended a video conference where every other participant — including the CFO — was a deepfake. Convinced by the realistic recreations, the employee authorised transfers totalling HK$200M (~$25.6M USD). Hong Kong police arrested six people in connection with the case. This remains one of the largest known deepfake-enabled financial frauds to date.',
+    tags:['Hong Kong','Arup','$25.6M stolen','Multi-person deepfake']
+  },
+  {
+    id:7, year:2017, type:'fn', cat:'violence',
+    icon:'ti-map-pin',
+    title:'Rohingya genocide Facebook misinformation',
+    subtitle:'Hate speech on Facebook amplified violence against Rohingya Muslims in Myanmar',
+    impact:100,
+    detail:'A UN fact-finding mission concluded that Facebook played a "determining role" in spreading hate speech that incited violence against Rohingya Muslims in Myanmar, contributing to what the UN called genocidal acts. Fabricated stories portraying Rohingya as terrorists circulated widely. Facebook later acknowledged it was too slow to respond and has since removed millions of accounts linked to coordinated inauthentic behaviour in Myanmar.',
+    tags:['Myanmar','UN inquiry','Facebook','Genocide nexus']
+  },
+  {
+    id:8, year:2020, type:'fn', cat:'electoral',
+    icon:'ti-flag',
+    title:'US 2020 election "Stop the Steal" campaign',
+    subtitle:'Coordinated misinformation about widespread election fraud with zero evidence',
+    impact:92,
+    detail:'Following the 2020 US presidential election, a coordinated "Stop the Steal" misinformation campaign spread unfounded claims of widespread election fraud across social media. Despite over 60 court cases finding no credible evidence, the narrative radicalised a significant portion of the population. It culminated in the January 6, 2021 Capitol attack, in which five people died. Platforms subsequently banned accounts including the sitting president.',
+    tags:['USA','Capitol attack','Jan 6','Election denial']
+  },
+  {
+    id:9, year:2022, type:'df', cat:'electoral',
+    icon:'ti-player-play',
+    title:'Ukraine deepfake — Zelensky surrender video',
+    subtitle:'AI-generated video falsely showed President Zelensky ordering troops to surrender',
+    impact:90,
+    detail:'Days after Russia\'s full-scale invasion of Ukraine, a deepfake video appeared on Ukrainian TV channels (which had been hacked) and social media, purporting to show President Zelensky telling Ukrainian soldiers to surrender. Zelensky quickly posted a real video debunking it, and Meta, YouTube, and Twitter removed the clip rapidly. The incident demonstrated deepfakes\' potential as a wartime disinformation weapon targeting military morale.',
+    tags:['Ukraine','Russia','Wartime deepfake','TV broadcast hack']
+  },
+  {
+    id:10, year:2023, type:'df', cat:'corporate',
+    icon:'ti-brand-linkedin',
+    title:'Fraudulent AI CEO impersonation — stock manipulation',
+    subtitle:'Deepfake CEO interviews manipulated penny stock prices',
+    impact:75,
+    detail:'Multiple cases emerged in 2023 where deepfake-generated video interviews of fictional or real CEOs were posted online to pump the share price of small-cap and penny stocks. Fraudsters used AI-generated faces and cloned voices to create convincing "investor update" videos. The US SEC issued warnings and opened investigations. The cases highlighted the securities fraud potential of synthetic media in unregulated corners of financial markets.',
+    tags:['USA','SEC investigation','Stock fraud','AI-generated CEO']
+  },
+  {
+    id:11, year:2021, type:'fn', cat:'health',
+    icon:'ti-needle',
+    title:'Anti-vaccine misinformation ecosystem',
+    subtitle:'Coordinated fake news drove measles resurgence and COVID vaccine hesitancy',
+    impact:88,
+    detail:'The Center for Countering Digital Hate identified just 12 accounts responsible for 65% of COVID vaccine misinformation on social media — the "Disinformation Dozen." Fabricated claims about infertility, microchips, and deaths were amplified by algorithmic recommendation systems. The consequences were measurable: regions with high social media vaccine misinformation had statistically lower vaccination rates, contributing to preventable deaths and a measles resurgence in multiple countries.',
+    tags:['Global','Disinformation Dozen','Measles resurgence','Vaccine hesitancy']
+  },
+  {
+    id:12, year:2025, type:'df', cat:'financial',
+    icon:'ti-device-mobile',
+    title:'AI voice clone grandparent scams (mass scale)',
+    subtitle:'Cloned family voices used to defraud elderly victims of millions',
+    impact:80,
+    detail:'By 2025, AI voice cloning services costing as little as $1/month enabled mass-scale "grandparent scams" where fraudsters clone a grandchild\'s voice from social media audio and call elderly relatives claiming to be in emergency legal or medical trouble. The FTC reported that Americans lost over $1.1 billion to impersonation scams in a single year, with AI voice clones identified as a major accelerant. Victims describe the voices as indistinguishable from their real grandchildren.',
+    tags:['USA','FTC report','$1.1B sector losses','Elderly victims']
+  }
+];
+
+const catColors = { df: '#d9515b', fn: '#75c20f', both: '#8bdc18' };
+const catNames = { df: 'Deepfake', fn: 'Fake news', both: 'Both' };
+
+function renderCards(cat) {
+  const grid = document.getElementById('incidents-grid');
+  const filtered = cat === 'all' ? incidents : incidents.filter(i => i.cat === cat);
+  document.getElementById('cnt-total').textContent = filtered.length;
+  document.getElementById('cnt-df').textContent = filtered.filter(i => i.type === 'df').length;
+  document.getElementById('cnt-fn').textContent = filtered.filter(i => i.type === 'fn').length;
+
+  grid.innerHTML = '';
+  filtered.forEach(inc => {
+    const barColor = catColors[inc.type];
+    const tagCls = inc.type === 'df' ? 'tag-df' : inc.type === 'fn' ? 'tag-fn' : 'tag-both';
+    const card = document.createElement('div');
+    card.className = 'incident-card';
+    card.innerHTML = `
+      <div class="ic-top">
+        <span class="tag ${tagCls}">${catNames[inc.type]}</span>
+        <span class="ic-year">${inc.year} &nbsp;<i class="ti ${inc.icon} ic-icon" aria-hidden="true" style="font-size:16px;vertical-align:-2px;"></i></span>
+      </div>
+      <div class="ic-title">${inc.title}</div>
+      <div class="ic-subtitle">${inc.subtitle}</div>
+      <div class="ic-impact">
+        <span class="impact-label">Severity</span>
+        <div class="impact-bar-bg"><div class="impact-bar" style="width:${inc.impact}%;background:${barColor};"></div></div>
+        <span class="impact-label">${inc.impact}/100</span>
+      </div>
+      <div class="ic-meta">${inc.tags.map(t => `<span class="ic-pill">${t}</span>`).join('')}</div>
+      <div class="ic-detail">${inc.detail}</div>
+    `;
+    card.addEventListener('click', () => card.classList.toggle('expanded'));
+    grid.appendChild(card);
+  });
+}
+
+renderCards('all');
+
+document.getElementById('filter-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards(btn.dataset.cat);
+});
+
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor = '#d4d6d1';
+const labelColor = '#687467';
+
+new Chart(document.getElementById('catChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Financial', 'Electoral', 'Health', 'Violence', 'Corporate'],
+    datasets: [
+      { label: 'Deepfake', data: [3, 1, 0, 1, 1], backgroundColor: '#d9515b' },
+      { label: 'Fake news', data: [0, 1, 1, 1, 0], backgroundColor: '#75c20f' },
+      { label: 'Both', data: [1, 1, 1, 0, 0], backgroundColor: '#8bdc18' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { stacked: true, ticks: { color: labelColor, font: { size: 11 } }, grid: { color: gridColor } },
+      y: { stacked: true, ticks: { color: labelColor, font: { size: 11 }, stepSize: 1 }, grid: { color: gridColor }, beginAtZero: true }
+    }
+  }
+});
+
+new Chart(document.getElementById('yearChart'), {
+  type: 'line',
+  data: {
+    labels: ['2017','2019','2020','2021','2022','2023','2024','2025'],
+    datasets: [{
+      label: 'Incidents',
+      data: [1,1,2,1,1,2,2,2],
+      borderColor: '#8bdc18',
+      backgroundColor: 'rgba(139,220,24,0.15)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#8bdc18',
+      pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: labelColor, font: { size: 11 } }, grid: { color: gridColor } },
+      y: { ticks: { color: labelColor, font: { size: 11 }, stepSize: 1 }, grid: { color: gridColor }, beginAtZero: true }
+    }
+  }
+});
+</script>
