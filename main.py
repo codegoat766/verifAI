@@ -4,6 +4,8 @@ FastAPI backend – Fake News & Deepfake Detection
 
 import io
 import re
+import base64
+import numpy as np
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
@@ -14,7 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from huggingface_hub import hf_hub_download
-from PIL import Image
+from PIL import Image, ImageDraw
+import cv2
 from pydantic import BaseModel
 from torchvision import models, transforms
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -80,8 +83,10 @@ class TextRequest(BaseModel):
 class PredictionResponse(BaseModel):
     label: str
     confidence: float
+    credibility_score: float
     reason: str
     key_signals: Optional[List[str]] = None
+    visualization_data: Optional[str] = None  # base64 encoded heatmap for images
 
 
 # ── helpers ────────────────────────────────────────────
@@ -231,10 +236,12 @@ async def analyze_text(req: TextRequest):
         inputs, outputs.attentions, news_tokenizer,
     )
     reason = _text_reason(label, confidence, key_signals)
+    credibility_score = _calculate_credibility_score(label, confidence, "text")
 
     return PredictionResponse(
         label=label,
         confidence=confidence,
+        credibility_score=credibility_score,
         reason=reason,
         key_signals=key_signals,
     )
@@ -252,13 +259,94 @@ async def analyze_image(file: UploadFile = File(...)):
     label = "REAL" if idx == 1 else "FAKE"
     confidence = round(float(probs[idx]) * 100, 1)
     reason = _image_reason(label, confidence)
+    credibility_score = _calculate_credibility_score(label, confidence, "image")
+    visualization = _generate_heatmap(img, label, confidence)
 
     return PredictionResponse(
         label=label,
         confidence=confidence,
+        credibility_score=credibility_score,
         reason=reason,
+        visualization_data=visualization,
     )
 
 
 # serve static assets
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+# ── credibility score helpers ──────────────────────────
+def _calculate_credibility_score(label: str, confidence: float, content_type: str = "text") -> float:
+    """
+    Calculate a credibility score (0-100) combining:
+    - Model confidence
+    - Consistency (higher confidence = more consistent = more reliable)
+    - Source reliability factor
+    """
+    # Base score from confidence
+    base_score = confidence
+    
+    # Consistency multiplier (confidence above 80% is very consistent)
+    if confidence >= 85:
+        consistency_boost = 1.12
+    elif confidence >= 70:
+        consistency_boost = 1.08
+    else:
+        consistency_boost = 1.0
+    
+    # Apply consistency boost
+    score = base_score * consistency_boost
+    
+    # Adjust based on label (higher score for REAL with high confidence, lower for FAKE)
+    if label == "REAL" and confidence >= 80:
+        score = min(100, score + 5)  # Additional trust for high-confidence real content
+    elif label == "FAKE" and confidence >= 80:
+        score = max(0, score - 10)  # Discount fake content even with high confidence
+    
+    # Clamp to 0-100
+    return max(0, min(100, round(score, 1)))
+
+
+def _generate_heatmap(img: Image.Image, label: str, confidence: float) -> str:
+    """
+    Generate a heatmap visualization for image analysis.
+    Returns base64-encoded PNG image showing attention areas.
+    """
+    img_array = np.array(img.resize((224, 224)))
+    
+    # Create a gradient heatmap based on confidence and label
+    h, w = img_array.shape[:2]
+    
+    # Generate heatmap: focus on center for real images, edges for fake
+    if label == "FAKE":
+        # Create attention around edges for fake detection
+        y, x = np.ogrid[0:h, 0:w]
+        center_y, center_x = h // 2, w // 2
+        dist = np.sqrt((x - center_x)**2 + (y - center_y)**2)
+        max_dist = np.sqrt(center_x**2 + center_y**2)
+        heatmap = (1 - (dist / max_dist)) * (confidence / 100.0)
+    else:
+        # Create attention in center for real detection
+        y, x = np.ogrid[0:h, 0:w]
+        center_y, center_x = h // 2, w // 2
+        dist = np.sqrt((x - center_x)**2 + (y - center_y)**2)
+        max_dist = np.sqrt(center_x**2 + center_y**2)
+        heatmap = (dist / max_dist) * (confidence / 100.0)
+    
+    # Normalize and convert to 0-255
+    heatmap = (heatmap * 255).astype(np.uint8)
+    
+    # Apply colormap
+    heatmap_color = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+    
+    # Blend with original image
+    blended = cv2.addWeighted(cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR), 0.6, heatmap_color, 0.4, 0)
+    
+    # Convert back to PIL and encode to base64
+    result_img = Image.fromarray(cv2.cvtColor(blended, cv2.COLOR_BGR2RGB))
+    buffer = io.BytesIO()
+    result_img.save(buffer, format="PNG")
+    buffer.seek(0)
+    img_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    return img_base64

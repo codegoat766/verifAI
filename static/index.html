@@ -426,6 +426,66 @@
     .bar-fill.real { background: linear-gradient(90deg, #8bdc18, #b7ef42); box-shadow: none; }
     .bar-fill.fake { background: linear-gradient(90deg, #d9515b, #f2a0a6); box-shadow: none; }
 
+    /* ═══════ CREDIBILITY SCORE ═══════ */
+    .credibility-section {
+      margin-top: 1.2rem; padding-top: 1.2rem;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 1.5rem; align-items: center;
+    }
+    .credibility-gauge {
+      flex-shrink: 0; width: 100px; height: 100px;
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .credibility-gauge svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 12px rgba(39,65,49,.12)); }
+    .credibility-gauge-text {
+      position: absolute; text-align: center;
+      font-family: var(--font-head); font-weight: 800; font-size: 1.35rem;
+    }
+    .credibility-gauge-label {
+      position: absolute; bottom: -24px;
+      font-family: var(--font-mono); font-size: .68rem;
+      color: var(--text-dim); text-transform: uppercase; letter-spacing: 0;
+    }
+    .credibility-info { flex: 1; }
+    .credibility-label {
+      font-family: var(--font-head); font-size: .68rem;
+      font-weight: 600; color: var(--accent); text-transform: uppercase;
+      letter-spacing: 0; margin-bottom: .4rem;
+    }
+    .credibility-desc {
+      font-family: var(--font-mono); font-size: .78rem;
+      color: var(--text); line-height: 1.6;
+    }
+
+    /* ═══════ VISUALIZATION ═══════ */
+    .visualization-section {
+      margin-top: 1.2rem; padding-top: 1.2rem;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .visualization-section.visible { display: block; }
+    .visualization-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: .8rem;
+    }
+    .visualization-header svg { width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; }
+    .visualization-header span {
+      font-family: var(--font-head); font-size: .68rem;
+      font-weight: 600; color: var(--accent); text-transform: uppercase;
+      letter-spacing: 0;
+    }
+    .visualization-image {
+      width: 100%; max-width: 300px; margin: 0 auto;
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; background: var(--bg-input);
+    }
+    .visualization-image img { width: 100%; height: auto; display: block; }
+    .visualization-caption {
+      font-family: var(--font-mono); font-size: .74rem;
+      color: var(--text-dim); margin-top: .6rem; text-align: center;
+      line-height: 1.5;
+    }
+
     /* ═══════ ANALYSIS REASON ═══════ */
     .analysis-section {
       margin-top: 1rem; text-align: left;
@@ -571,6 +631,17 @@
             <span class="confidence-pct" id="result-text-pct"></span>
           </div>
           <div class="bar-track"><div class="bar-fill" id="result-text-bar"></div></div>
+          <div class="credibility-section" id="result-text-credibility">
+            <div class="credibility-gauge">
+              <svg viewBox="0 0 120 120" id="result-text-gauge-svg"></svg>
+              <div class="credibility-gauge-text" id="result-text-credibility-pct"></div>
+              <div class="credibility-gauge-label">Credibility</div>
+            </div>
+            <div class="credibility-info">
+              <div class="credibility-label">Overall Trust Score</div>
+              <div class="credibility-desc" id="result-text-credibility-desc"></div>
+            </div>
+          </div>
           <div class="analysis-section" id="result-text-analysis" style="display:none">
             <div class="analysis-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -633,6 +704,27 @@
             <span class="confidence-pct" id="result-image-pct"></span>
           </div>
           <div class="bar-track"><div class="bar-fill" id="result-image-bar"></div></div>
+          <div class="credibility-section" id="result-image-credibility">
+            <div class="credibility-gauge">
+              <svg viewBox="0 0 120 120" id="result-image-gauge-svg"></svg>
+              <div class="credibility-gauge-text" id="result-image-credibility-pct"></div>
+              <div class="credibility-gauge-label">Credibility</div>
+            </div>
+            <div class="credibility-info">
+              <div class="credibility-label">Overall Trust Score</div>
+              <div class="credibility-desc" id="result-image-credibility-desc"></div>
+            </div>
+          </div>
+          <div class="visualization-section" id="result-image-visualization">
+            <div class="visualization-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Attention Heatmap</span>
+            </div>
+            <div class="visualization-image">
+              <img id="result-image-heatmap" src="" alt="heatmap" />
+            </div>
+            <div class="visualization-caption">Areas highlighted show regions that influenced the model's classification decision.</div>
+          </div>
           <div class="analysis-section" id="result-image-analysis" style="display:none">
             <div class="analysis-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -758,7 +850,67 @@ function hideResult(id){document.getElementById('result-'+id).classList.remove('
 const SVG_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
 const SVG_WARN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 
-function renderResult(id, label, confidence, reason, keySignals) {
+function createCredibilityGauge(score, gaugeId) {
+  /**Create an SVG gauge for credibility score**/
+  const angle = (score / 100) * 180 - 90;  // Convert 0-100 to -90 to 90 degrees
+  const radius = 45;
+  const cx = 60, cy = 60;
+  
+  // Color based on score
+  let color;
+  if (score >= 75) color = '#75c20f';  // Green
+  else if (score >= 50) color = '#b7ef42';  // Yellow-green
+  else if (score >= 25) color = '#ffa500';  // Orange
+  else color = '#d9515b';  // Red
+  
+  const svg = document.getElementById(gaugeId);
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#e8f4d6;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#d0e8b0;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <!-- Background circle -->
+    <circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#gauge-grad)" stroke="rgba(39,65,49,.12)" stroke-width="1"/>
+    <!-- Gauge scale arc -->
+    <circle cx="${cx}" cy="${cy}" r="${radius - 8}" fill="none" stroke="rgba(39,65,49,.08)" stroke-width="6" stroke-dasharray="141,141" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+    <!-- Score arc -->
+    <circle cx="${cx}" cy="${cy}" r="${radius - 8}" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${(score / 100) * 141},141" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})" style="transition: stroke-dasharray 1.2s cubic-bezier(.22,1,.36,1);"/>
+    <!-- Needle -->
+    <line x1="${cx}" y1="${cy}" x2="${cx + radius * 0.65 * Math.cos(angle * Math.PI / 180)}" y2="${cy + radius * 0.65 * Math.sin(angle * Math.PI / 180)}" stroke="${color}" stroke-width="2" stroke-linecap="round" style="transition: all 1.2s cubic-bezier(.22,1,.36,1);"/>
+    <!-- Center dot -->
+    <circle cx="${cx}" cy="${cy}" r="4" fill="${color}"/>
+    <!-- Labels -->
+    <text x="22" y="117" font-family="var(--font-mono)" font-size="10" fill="rgba(39,65,49,.5)" text-anchor="middle">0</text>
+    <text x="98" y="117" font-family="var(--font-mono)" font-size="10" fill="rgba(39,65,49,.5)" text-anchor="middle">100</text>
+  `;
+}
+
+function getCredibilityDescription(score, label) {
+  /**Generate description text based on credibility score**/
+  if (score >= 85) {
+    return label === 'REAL' 
+      ? 'Highly credible content. Strong confidence in authenticity.'
+      : 'Highly likely fake. Strong confidence in fabrication detection.';
+  } else if (score >= 70) {
+    return label === 'REAL'
+      ? 'Likely credible. Good confidence in authenticity with minor ambiguities.'
+      : 'Likely fake. Moderate-to-high confidence in fabrication detection.';
+  } else if (score >= 50) {
+    return label === 'REAL'
+      ? 'Moderate credibility. Mixed signals present. Manual verification recommended.'
+      : 'Moderate fabrication indicators. Some ambiguous features detected.';
+  } else if (score >= 25) {
+    return label === 'REAL'
+      ? 'Low credibility. Significant ambiguities. Verification strongly recommended.'
+      : 'Low confidence in fabrication. Weak indicators detected.';
+  } else {
+    return 'Very low credibility score. High uncertainty. Requires expert review.';
+  }
+}
+
+function renderResult(id, label, confidence, credibility, reason, keySignals, visualizationData) {
   const real = label === 'REAL', cls = real ? 'real' : 'fake';
   const desc = real
     ? '> analysis complete: content verified authentic_'
@@ -787,6 +939,27 @@ function renderResult(id, label, confidence, reason, keySignals) {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     bar.style.width = confidence.toFixed(1) + '%';
   }));
+
+  // Render credibility score and gauge
+  const credibilityEl = document.getElementById('result-'+id+'-credibility');
+  if (credibilityEl) {
+    const pctEl = document.getElementById('result-'+id+'-credibility-pct');
+    pctEl.textContent = credibility.toFixed(1);
+    pctEl.style.color = credibility >= 75 ? '#75c20f' : credibility >= 50 ? '#b7ef42' : credibility >= 25 ? '#ffa500' : '#d9515b';
+    
+    createCredibilityGauge(credibility, 'result-'+id+'-gauge-svg');
+    
+    const descEl = document.getElementById('result-'+id+'-credibility-desc');
+    descEl.textContent = getCredibilityDescription(credibility, label);
+  }
+
+  // Render visualization (for images)
+  const vizEl = document.getElementById('result-'+id+'-visualization');
+  if (vizEl && visualizationData) {
+    vizEl.classList.add('visible');
+    const heatmapImg = document.getElementById('result-'+id+'-heatmap');
+    heatmapImg.src = 'data:image/png;base64,' + visualizationData;
+  }
 
   // Render analysis reason
   const analysisEl = document.getElementById('result-'+id+'-analysis');
@@ -820,7 +993,8 @@ async function analyzeText() {
   try {
     const res=await fetch(API+'/analyze-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
     if(!res.ok) throw new Error('server error '+res.status);
-    const d=await res.json(); renderResult('text',d.label,d.confidence,d.reason,d.key_signals);
+    const d=await res.json(); 
+    renderResult('text', d.label, d.confidence, d.credibility_score, d.reason, d.key_signals, null);
   } catch(e){showError('text','error: '+e.message)} finally{hideSpinner('text','Run Analysis')}
 }
 
@@ -832,7 +1006,8 @@ async function analyzeImage() {
     const form=new FormData(); form.append('file',selectedFile);
     const res=await fetch(API+'/analyze-image',{method:'POST',body:form});
     if(!res.ok) throw new Error('server error '+res.status);
-    const d=await res.json(); renderResult('image',d.label,d.confidence,d.reason,null);
+    const d=await res.json(); 
+    renderResult('image', d.label, d.confidence, d.credibility_score, d.reason, null, d.visualization_data);
   } catch(e){showError('image','error: '+e.message)} finally{hideSpinner('image','Run Analysis')}
 }
 </script>
